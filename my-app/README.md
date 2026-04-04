@@ -22,7 +22,7 @@ It combines multiple data sources and gives a simple, reliable answer, along wit
 
 ---
 
-## 🧠 Core idea
+## Core idea
 
 Instead of showing raw weather data and making the user interpret it, the app translates everything into a single score:
 
@@ -83,6 +83,3 @@ You get:
   * structuring a clean frontend app
 
 
-
-* turn this into a **perfect GitHub README (slightly more polished)**
-* or a **LinkedIn post that gets attention but still sounds like you**
