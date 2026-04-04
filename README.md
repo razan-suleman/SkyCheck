@@ -82,7 +82,3 @@ You get:
   * designing scoring systems
   * structuring a clean frontend app
 
-
-
-* turn this into a **perfect GitHub README (slightly more polished)**
-* or a **LinkedIn post that gets attention but still sounds like you**
