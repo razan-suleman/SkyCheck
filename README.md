@@ -1,4 +1,4 @@
-# SkyCheck – Can I Stargaze?
+# SkyCheck - Can I Stargaze?
 
 I opened a website to check if tonight was good for stargazing… and it asked me to pay
 For the sky.
