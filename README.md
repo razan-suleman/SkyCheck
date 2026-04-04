@@ -1,4 +1,4 @@
-# SkyCheck – Can I Stargaze?
+# SkyCheck - Can I Stargaze?
 
 I opened a website to check if tonight was good for stargazing… and it asked me to pay
 For the sky.
@@ -22,7 +22,7 @@ It combines multiple data sources and gives a simple, reliable answer, along wit
 
 ---
 
-## Core idea
+## 🧠 Core idea
 
 Instead of showing raw weather data and making the user interpret it, the app translates everything into a single score:
 
@@ -81,5 +81,4 @@ You get:
   * translating raw data → decisions
   * designing scoring systems
   * structuring a clean frontend app
-
 
