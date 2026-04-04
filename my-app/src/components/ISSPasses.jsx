@@ -1,5 +1,3 @@
-// International Space Station pass times
-
 export default function ISSPasses({ issPasses }) {
   if (!issPasses || issPasses.length === 0) return null;
 
@@ -12,7 +10,7 @@ export default function ISSPasses({ issPasses }) {
         borderRadius: "14px",
       }}
     >
-      <h2 style={{ marginTop: 0, fontSize: "1.2rem" }}>🚀 ISS Pass Times</h2>
+      <h2 style={{ marginTop: 0, fontSize: "1.2rem" }}>ISS Pass Times</h2>
       <p style={{ marginTop: "0.35rem", marginBottom: "1rem", color: "#e0e0e0", fontSize: "0.85rem" }}>
         When the International Space Station will fly over your location. Look for a bright moving "star"!
       </p>
@@ -52,10 +50,6 @@ export default function ISSPasses({ issPasses }) {
                 TONIGHT
               </div>
             )}
-            
-            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-              {pass.brightnessEmoji}
-            </div>
             
             <div style={{ fontSize: "0.85rem", color: "#d0d0d0", marginBottom: "0.5rem" }}>
               {pass.date}

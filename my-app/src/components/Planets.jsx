@@ -1,5 +1,3 @@
-// Visible planets display
-
 export default function Planets({ planets, result }) {
   if (!result) return null;
 
@@ -13,7 +11,7 @@ export default function Planets({ planets, result }) {
           borderRadius: "16px",
         }}
       >
-        <h2 style={{ marginTop: 0 }}>🪐 Visible Planets Tonight</h2>
+        <h2 style={{ marginTop: 0 }}>Visible Planets Tonight</h2>
         <p style={{ marginTop: "0.5rem", color: "#e0e0e0" }}>
           No major planets are visible tonight at this location. Check back another night or try a different time!
         </p>
@@ -30,7 +28,7 @@ export default function Planets({ planets, result }) {
         borderRadius: "16px",
       }}
     >
-      <h2 style={{ marginTop: 0 }}>🪐 Visible Planets Tonight</h2>
+      <h2 style={{ marginTop: 0 }}>Visible Planets Tonight</h2>
       <p style={{ marginTop: "0.5rem", marginBottom: "1.25rem", color: "#e0e0e0" }}>
         Planets you can see with the naked eye tonight.
       </p>

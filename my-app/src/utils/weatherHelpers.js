@@ -1,206 +1,181 @@
-// Weather data processing and formatting utilities
-
 import { getMoonPhase, getMoonIllumination } from './astronomy';
 import { calculateScore, getSummary } from './scoring';
 
-/**
- * Pick the current or next available hour from hourly weather data
- */
+// grab the current hour (or next one) from the weather data
 export function pickTonightHour(hourly) {
   const now = new Date();
-
-  // Look for the next hour that is at or after current time
-  let index = hourly.time.findIndex((t) => new Date(t) >= now);
-
-  // fallback if not found
-  if (index === -1) index = 0;
-
+  let idx = hourly.time.findIndex((t) => new Date(t) >= now);
+  if (idx === -1) idx = 0;
+  
   return {
-    time: hourly.time[index],
-    cloud: hourly.cloud_cover[index],
-    humidity: hourly.relative_humidity_2m[index],
-    precipitation: hourly.precipitation[index],
-    wind: hourly.wind_speed_10m[index],
+    time: hourly.time[idx],
+    cloud: hourly.cloud_cover[idx],
+    humidity: hourly.relative_humidity_2m[idx],
+    precipitation: hourly.precipitation[idx],
+    wind: hourly.wind_speed_10m[idx],
   };
 }
 
-/**
- * Extract and format sunset, sunrise, and twilight times from weather data
- */
+// Get sunset/sunrise and calculate twilight times
 export function extractSunTimes(data) {
-  if (!data.daily || !data.daily.sunrise || !data.daily.sunset) {
-    return null;
-  }
+  if (!data.daily || !data.daily.sunrise || !data.daily.sunset) return null;
   
   const sunrise = new Date(data.daily.sunrise[0]);
   const sunset = new Date(data.daily.sunset[0]);
   
-  // Calculate twilight times (civil twilight ~30 min, astronomical ~90 min after sunset)
+  // twilight times (civil ~30min, astronomical ~90min after sunset)
   const civilTwilight = new Date(sunset.getTime() + 30 * 60 * 1000);
   const nauticalTwilight = new Date(sunset.getTime() + 60 * 60 * 1000);
-  const astronomicalTwilight = new Date(sunset.getTime() + 90 * 60 * 1000);
-  
-  // Astronomical twilight before sunrise
+  const astroTwilight = new Date(sunset.getTime() + 90 * 60 * 1000);
   const morningTwilight = new Date(sunrise.getTime() - 90 * 60 * 1000);
   
+  const formatTime = (d) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
   return {
-    sunrise: sunrise.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    sunset: sunset.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    civilTwilight: civilTwilight.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    nauticalTwilight: nauticalTwilight.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    astronomicalTwilight: astronomicalTwilight.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    morningTwilight: morningTwilight.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+    sunrise: formatTime(sunrise),
+    sunset: formatTime(sunset),
+    civilTwilight: formatTime(civilTwilight),
+    nauticalTwilight: formatTime(nauticalTwilight),
+    astronomicalTwilight: formatTime(astroTwilight),
+    morningTwilight: formatTime(morningTwilight),
     sunsetDate: sunset,
     sunriseDate: sunrise,
-    astronomicalTwilightDate: astronomicalTwilight,
+    astronomicalTwilightDate: astroTwilight,
     morningTwilightDate: morningTwilight,
   };
 }
 
-/**
- * Process hourly weather data for tonight (from now until sunrise)
- */
+// Build hour-by-hour breakdown for tonight
 export function processHourlyTonight(data, sunTimes) {
   if (!sunTimes) return null;
   
-  const hourly = [];
+  const hours = [];
   const now = new Date();
   
-  // Start from sunset, end at sunrise next day
   for (let i = 0; i < data.hourly.time.length; i++) {
-    const hourTime = new Date(data.hourly.time[i]);
+    const t = new Date(data.hourly.time[i]);
     
-    // Only include hours from now until next sunrise
-    if (hourTime >= now && hourTime >= sunTimes.sunsetDate && hourTime <= sunTimes.sunriseDate) {
+    // only include hours from now until sunrise
+    if (t >= now && t >= sunTimes.sunsetDate && t <= sunTimes.sunriseDate) {
       const cloud = data.hourly.cloud_cover[i] || 0;
       const humidity = data.hourly.relative_humidity_2m[i] || 0;
-      const precipitation = data.hourly.precipitation[i] || 0;
+      const precip = data.hourly.precipitation[i] || 0;
       const wind = data.hourly.wind_speed_10m[i] || 0;
       
-      const moonPhase = getMoonPhase(hourTime);
-      const moonIllumination = getMoonIllumination(moonPhase);
+      const moonPhase = getMoonPhase(t);
+      const moonIllum = getMoonIllumination(moonPhase);
       
-      const score = calculateScore({ cloud, humidity, precipitation, wind, moonIllumination });
+      const score = calculateScore({ cloud, humidity, precipitation: precip, wind, moonIllumination: moonIllum });
       const summary = getSummary(score);
       
-      // Determine if it's dark enough for stargazing
-      const isDarkEnough = hourTime >= sunTimes.astronomicalTwilightDate && hourTime <= sunTimes.morningTwilightDate;
+      // check if it's actually dark (past astronomical twilight)
+      const dark = t >= sunTimes.astronomicalTwilightDate && t <= sunTimes.morningTwilightDate;
       
-      hourly.push({
-        time: hourTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        hour: hourTime.getHours(),
+      hours.push({
+        time: t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        hour: t.getHours(),
         score,
         summary,
         cloud,
         humidity,
-        precipitation,
+        precipitation: precip,
         wind,
-        moonIllumination,
-        isDarkEnough,
+        moonIllumination: moonIllum,
+        isDarkEnough: dark,
       });
     }
   }
   
-  return hourly;
+  return hours;
 }
 
-/**
- * Calculate average stargazing score for a specific day
- */
-export function calculateNightScore(hourlyData, dayIndex) {
-  // For each day, analyze evening hours (20:00-23:00) to get night conditions
-  const hoursPerDay = 24;
-  const eveningStartHour = 20; // 8 PM
-  const eveningEndHour = 23; // 11 PM
-  
-  let totalScore = 0;
+// Calculate score for one night (average of evening hours 8-11pm)
+export function calculateNightScore(hourlyData, dayIdx) {
+  let total = 0;
   let count = 0;
-
-  for (let hour = eveningStartHour; hour <= eveningEndHour; hour++) {
-    const index = dayIndex * hoursPerDay + hour;
-    if (index < hourlyData.time.length) {
-      const cloud = hourlyData.cloud_cover[index] || 0;
-      const humidity = hourlyData.relative_humidity_2m[index] || 0;
-      const precipitation = hourlyData.precipitation[index] || 0;
-      const wind = hourlyData.wind_speed_10m[index] || 0;
+  
+  // check evening hours 20-23 (8pm-11pm)
+  for (let hr = 20; hr <= 23; hr++) {
+    const idx = dayIdx * 24 + hr;
+    if (idx < hourlyData.time.length) {
+      const cloud = hourlyData.cloud_cover[idx] || 0;
+      const humidity = hourlyData.relative_humidity_2m[idx] || 0;
+      const precip = hourlyData.precipitation[idx] || 0;
+      const wind = hourlyData.wind_speed_10m[idx] || 0;
       
-      // Get moon illumination for that day
-      const date = new Date(hourlyData.time[index]);
+      const date = new Date(hourlyData.time[idx]);
       const moonPhase = getMoonPhase(date);
-      const moonIllumination = getMoonIllumination(moonPhase);
+      const moonIllum = getMoonIllumination(moonPhase);
       
-      const score = calculateScore({ cloud, humidity, precipitation, wind, moonIllumination });
-      totalScore += score;
+      const score = calculateScore({ cloud, humidity, precipitation: precip, wind, moonIllumination: moonIllum });
+      total += score;
       count++;
     }
   }
-
-  return count > 0 ? Math.round(totalScore / count) : 0;
+  
+  return count > 0 ? Math.round(total / count) : 0;
 }
 
-/**
- * Process weekly weather data into daily forecasts
- */
+// Build 7-day forecast
 export function processWeeklyForecast(data) {
-  const forecast = [];
+  const days = [];
   
   for (let day = 0; day < 7; day++) {
-    const dayStartIndex = day * 24;
-    if (dayStartIndex >= data.hourly.time.length) break;
+    const idx = day * 24;
+    if (idx >= data.hourly.time.length) break;
     
-    const date = new Date(data.hourly.time[dayStartIndex]);
+    const date = new Date(data.hourly.time[idx]);
     const moonPhase = getMoonPhase(date);
-    const moonIllumination = getMoonIllumination(moonPhase);
+    const moonIllum = getMoonIllumination(moonPhase);
     
-    const avgScore = calculateNightScore(data.hourly, day);
-    const summary = getSummary(avgScore);
+    const score = calculateNightScore(data.hourly, day);
+    const summary = getSummary(score);
     
-    // Get average conditions for the evening
-    let avgCloud = 0, avgHumidity = 0, avgPrecip = 0, avgWind = 0;
-    let count = 0;
+    // avg evening conditions
+    let cloud = 0, humidity = 0, precip = 0, wind = 0, cnt = 0;
     
-    for (let hour = 20; hour <= 23; hour++) {
-      const index = day * 24 + hour;
-      if (index < data.hourly.time.length) {
-        avgCloud += data.hourly.cloud_cover[index] || 0;
-        avgHumidity += data.hourly.relative_humidity_2m[index] || 0;
-        avgPrecip += data.hourly.precipitation[index] || 0;
-        avgWind += data.hourly.wind_speed_10m[index] || 0;
-        count++;
+    for (let hr = 20; hr <= 23; hr++) {
+      const i = day * 24 + hr;
+      if (i < data.hourly.time.length) {
+        cloud += data.hourly.cloud_cover[i] || 0;
+        humidity += data.hourly.relative_humidity_2m[i] || 0;
+        precip += data.hourly.precipitation[i] || 0;
+        wind += data.hourly.wind_speed_10m[i] || 0;
+        cnt++;
       }
     }
     
-    if (count > 0) {
-      avgCloud = Math.round(avgCloud / count);
-      avgHumidity = Math.round(avgHumidity / count);
-      avgPrecip = (avgPrecip / count).toFixed(1);
-      avgWind = Math.round(avgWind / count);
+    if (cnt > 0) {
+      cloud = Math.round(cloud / cnt);
+      humidity = Math.round(humidity / cnt);
+      precip = (precip / cnt).toFixed(1);
+      wind = Math.round(wind / cnt);
     }
     
-    // Get moon phase name separately
-    const moonPhaseName = getMoonPhase(date);
-    const phaseName = moonPhaseName < 0.0625 ? "New Moon" :
-                      moonPhaseName < 0.1875 ? "Waxing Crescent" :
-                      moonPhaseName < 0.3125 ? "First Quarter" :
-                      moonPhaseName < 0.4375 ? "Waxing Gibbous" :
-                      moonPhaseName < 0.5625 ? "Full Moon" :
-                      moonPhaseName < 0.6875 ? "Waning Gibbous" :
-                      moonPhaseName < 0.8125 ? "Last Quarter" :
-                      moonPhaseName < 0.9375 ? "Waning Crescent" : "New Moon";
+    // moon phase name
+    let phaseName = "New Moon";
+    if (moonPhase < 0.0625) phaseName = "New Moon";
+    else if (moonPhase < 0.1875) phaseName = "Waxing Crescent";
+    else if (moonPhase < 0.3125) phaseName = "First Quarter";
+    else if (moonPhase < 0.4375) phaseName = "Waxing Gibbous";
+    else if (moonPhase < 0.5625) phaseName = "Full Moon";
+    else if (moonPhase < 0.6875) phaseName = "Waning Gibbous";
+    else if (moonPhase < 0.8125) phaseName = "Last Quarter";
+    else if (moonPhase < 0.9375) phaseName = "Waning Crescent";
     
-    forecast.push({
+    days.push({
       date: date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-      score: avgScore,
+      score,
       summary,
       moonPhase: phaseName,
       moonPhaseValue: moonPhase,
-      moonIllumination,
-      cloud: avgCloud,
-      humidity: avgHumidity,
-      precipitation: avgPrecip,
-      wind: avgWind,
+      moonIllumination: moonIllum,
+      cloud,
+      humidity,
+      precipitation: precip,
+      wind,
     });
   }
   
-  return forecast;
+  return days;
 }

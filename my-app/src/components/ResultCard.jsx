@@ -1,5 +1,3 @@
-// Main result card displaying stargazing score and conditions
-
 import { getMoonPhaseImage } from '../constants/moonPhases';
 
 export default function ResultCard({ result }) {
@@ -72,7 +70,7 @@ export default function ResultCard({ result }) {
           fontSize: "1.1rem",
           fontWeight: "600",
         }}>
-          🌙 Moon Conditions
+          Moon Conditions
         </h3>
         <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", flexWrap: "wrap" }}>
           <div style={{ 
@@ -117,27 +115,27 @@ export default function ResultCard({ result }) {
         fontSize: "0.95rem",
       }}>
         <div style={{ padding: "0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px" }}>
-          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>📍 Location</div>
+          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>Location</div>
           <div style={{ fontWeight: "500" }}>{result.location}</div>
         </div>
         <div style={{ padding: "0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px" }}>
-          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>🌐 Coordinates</div>
+          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>Coordinates</div>
           <div style={{ fontWeight: "500" }}>{result.lat}, {result.lon}</div>
         </div>
         <div style={{ padding: "0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px" }}>
-          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>☁️ Cloud Cover</div>
+          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>Cloud Cover</div>
           <div style={{ fontWeight: "500" }}>{result.cloud}%</div>
         </div>
         <div style={{ padding: "0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px" }}>
-          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>💧 Humidity</div>
+          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>Humidity</div>
           <div style={{ fontWeight: "500" }}>{result.humidity}%</div>
         </div>
         <div style={{ padding: "0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px" }}>
-          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>🌧️ Precipitation</div>
+          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>Precipitation</div>
           <div style={{ fontWeight: "500" }}>{result.precipitation} mm</div>
         </div>
         <div style={{ padding: "0.75rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "12px" }}>
-          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>💨 Wind Speed</div>
+          <div style={{ opacity: 0.7, marginBottom: "0.25rem" }}>Wind Speed</div>
           <div style={{ fontWeight: "500" }}>{result.wind} km/h</div>
         </div>
       </div>

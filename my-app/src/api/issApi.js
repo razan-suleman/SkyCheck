@@ -1,63 +1,39 @@
-// ISS (International Space Station) pass predictions
-
-/**
- * Fetch upcoming ISS passes overhead for a location
- * Uses Open Notify API to get visible passes
- */
+// Get ISS flyover times from Open Notify API
 export async function fetchISSPasses(lat, lon) {
   try {
-    const issUrl = `http://api.open-notify.org/iss-pass.json?lat=${lat}&lon=${lon}&n=5`;
-    const response = await fetch(issUrl);
+    const url = `http://api.open-notify.org/iss-pass.json?lat=${lat}&lon=${lon}&n=5`;
+    const res = await fetch(url);
     
-    if (!response.ok) {
-      console.error("Failed to fetch ISS passes");
-      return null;
-    }
+    if (!res.ok) return null;
     
-    const data = await response.json();
+    const data = await res.json();
+    if (!data.response || data.response.length === 0) return [];
     
-    if (!data.response || data.response.length === 0) {
-      return [];
-    }
-    
-    // Process and format the ISS passes
+    // format each pass
     const passes = data.response.map(pass => {
       const passDate = new Date(pass.risetime * 1000);
-      const duration = Math.round(pass.duration / 60); // Convert to minutes
+      const mins = Math.round(pass.duration / 60);
       
-      // Estimate brightness based on duration (longer = brighter/higher)
+      // longer duration = brighter pass (ISS is higher in the sky)
       let brightness = "Faint";
-      let brightnessEmoji = "✨";
-      if (duration >= 6) {
-        brightness = "Very Bright";
-        brightnessEmoji = "⭐";
-      } else if (duration >= 4) {
-        brightness = "Bright";
-        brightnessEmoji = "🌟";
-      } else if (duration >= 2) {
-        brightness = "Moderate";
-        brightnessEmoji = "💫";
-      }
+      if (mins >= 6) brightness = "Very Bright";
+      else if (mins >= 4) brightness = "Bright";
+      else if (mins >= 2) brightness = "Moderate";
       
       const now = new Date();
-      const timeUntil = Math.round((passDate - now) / 1000 / 60); // minutes
-      let timeUntilStr = "";
+      const minsUntil = Math.round((passDate - now) / 1000 / 60);
+      let timeStr = "";
       
-      if (timeUntil < 60) {
-        timeUntilStr = `in ${timeUntil} min`;
-      } else if (timeUntil < 1440) {
-        timeUntilStr = `in ${Math.round(timeUntil / 60)} hours`;
-      } else {
-        timeUntilStr = `in ${Math.round(timeUntil / 1440)} days`;
-      }
+      if (minsUntil < 60) timeStr = `in ${minsUntil} min`;
+      else if (minsUntil < 1440) timeStr = `in ${Math.round(minsUntil / 60)} hours`;
+      else timeStr = `in ${Math.round(minsUntil / 1440)} days`;
       
       return {
         date: passDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
         time: passDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-        duration: duration,
+        duration: mins,
         brightness,
-        brightnessEmoji,
-        timeUntil: timeUntilStr,
+        timeUntil: timeStr,
         isTonight: passDate.toDateString() === now.toDateString(),
       };
     });

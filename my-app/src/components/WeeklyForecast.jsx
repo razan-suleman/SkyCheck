@@ -1,4 +1,4 @@
-// 7-day stargazing forecast
+// Weekly forecast component
 
 import { getMoonPhaseImage } from '../constants/moonPhases';
 
@@ -57,11 +57,11 @@ export default function WeeklyForecast({ weekForecast }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "14px",
+                    fontSize: "10px",
                     fontWeight: "bold",
                   }}
                 >
-                  ⭐
+                  BEST
                 </div>
               )}
               <div style={{ fontSize: "0.85rem", fontWeight: "bold", marginBottom: "0.5rem" }}>
@@ -98,9 +98,9 @@ export default function WeeklyForecast({ weekForecast }) {
                 />
               </div>
               <div style={{ fontSize: "0.7rem", color: "#d0d0d0", lineHeight: "1.4" }}>
-                <div>☁️ {day.cloud}%</div>
-                <div>💧 {day.humidity}%</div>
-                <div>🌙 {day.moonIllumination}%</div>
+                <div>Cloud: {day.cloud}%</div>
+                <div>Humidity: {day.humidity}%</div>
+                <div>Moon: {day.moonIllumination}%</div>
               </div>
             </div>
           );
@@ -117,7 +117,7 @@ export default function WeeklyForecast({ weekForecast }) {
           color: "#e0e0e0",
         }}
       >
-        <strong>Legend:</strong> ⭐ = Best night | Blue border = Today | 
+        <strong>Legend:</strong> "BEST" badge = Highest score | Blue border = Today | 
         Score: <span style={{ color: "#66d98f" }}>70+</span> Excellent, 
         <span style={{ color: "#ffcc66" }}> 50-69</span> Good, 
         <span style={{ color: "#ff9966" }}> 30-49</span> Poor, 

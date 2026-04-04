@@ -1,5 +1,4 @@
-// Moon phase image imports and utilities
-
+// Moon phase images
 import newMoonImg from "../assets/new-moon.png";
 import waxingCrescentImg from "../assets/waxing-crescent.png";
 import firstQuarterImg from "../assets/first-quarter.png";

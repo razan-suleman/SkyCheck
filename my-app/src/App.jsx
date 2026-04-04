@@ -218,7 +218,7 @@ function App() {
         background: "linear-gradient(135deg, #1a1d2e 0%, #2d3561 50%, #1a1d2e 100%)",
         color: "white",
         fontFamily: "'Segoe UI', Roboto, system-ui, sans-serif",
-        padding: "1rem 0.75rem",
+        padding: "0.5rem",
         position: "relative",
         overflow: "hidden",
       }}
@@ -246,15 +246,17 @@ function App() {
         className="fade-in"
         style={{
           maxWidth: "900px",
+          width: "100%",
           margin: "0 auto",
           background: "rgba(255, 255, 255, 0.08)",
           backdropFilter: "blur(20px)",
           borderRadius: "24px",
-          padding: "1.5rem 1rem",
+          padding: "1rem",
           boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)",
           border: "1px solid rgba(255, 255, 255, 0.1)",
           position: "relative",
           zIndex: 1,
+          boxSizing: "border-box",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "2.5rem", paddingBottom: "1.5rem", borderBottom: "1px solid rgba(255, 255, 255, 0.1)" }}>
@@ -268,6 +270,7 @@ function App() {
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",
             letterSpacing: "-0.02em",
+            paddingBottom: "0.6rem",
           }}>
             Can I stargaze?
           </h1>

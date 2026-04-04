@@ -1,15 +1,13 @@
-// Light pollution level display (Bortle Scale)
-
 export default function LightPollution({ lightPollution }) {
   if (!lightPollution) return null;
 
   const getTip = (scale) => {
     if (scale <= 4) {
-      return "🌌 Great location for deep-sky objects and Milky Way photography";
+      return "Great location for deep-sky objects and Milky Way photography";
     } else if (scale <= 6) {
-      return "⭐ Suitable for bright deep-sky objects, planets, and moon observation";
+      return "Suitable for bright deep-sky objects, planets, and moon observation";
     } else {
-      return "🌙 Best for observing planets, moon, and brightest stars";
+      return "Best for observing planets, moon, and brightest stars";
     }
   };
 

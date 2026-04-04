@@ -1,15 +1,7 @@
-// Scoring and rating calculations for stargazing conditions
-
-/**
- * Helper function to clamp values within a range
- */
 export function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
-/**
- * Convert numerical score to descriptive rating
- */
 export function getSummary(score) {
   if (score >= 85) return "Excellent";
   if (score >= 70) return "Good";
@@ -18,44 +10,38 @@ export function getSummary(score) {
   return "Bad";
 }
 
-/**
- * Build a human-readable explanation of current conditions
- */
 export function buildReason({ cloud, humidity, precipitation, wind, moonIllumination }) {
-  const reasons = [];
-
-  // Check cloud cover
-  if (cloud >= 70) reasons.push("very cloudy");
-  else if (cloud >= 40) reasons.push("some cloud cover");
-
-  // Check other weather factors
-  if (humidity >= 80) reasons.push("high humidity");
-  if (precipitation > 0) reasons.push("rain chance");
-  if (wind >= 25) reasons.push("strong wind");
+  const issues = [];
   
-  if (moonIllumination > 75) reasons.push("bright moon");
-  else if (moonIllumination > 50) reasons.push("moderate moonlight");
-
-  if (reasons.length === 0) return "Clear enough for a decent stargazing session.";
-  return `Main issues: ${reasons.join(", ")}.`;
+  if (cloud >= 70) issues.push("very cloudy");
+  else if (cloud >= 40) issues.push("some clouds");
+  
+  if (humidity >= 80) issues.push("high humidity");
+  if (precipitation > 0) issues.push("rain");
+  if (wind >= 25) issues.push("windy");
+  if (moonIllumination > 75) issues.push("bright moon");
+  else if (moonIllumination > 50) issues.push("some moonlight");
+  
+  return issues.length === 0 
+    ? "Conditions look pretty good!" 
+    : `Issues: ${issues.join(", ")}.`;
 }
 
-/**
- * Calculate overall stargazing score based on weather and moon conditions
- */
 export function calculateScore({ cloud, humidity, precipitation, wind, moonIllumination }) {
   let score = 100;
-
+  
+  // cloud cover is the biggest factor
   score -= cloud * 0.6;
   score -= humidity * 0.1;
-
+  
+  // any rain is bad news
   if (precipitation > 0) score -= 20;
   if (wind > 25) score -= 10;
   
-  // Reduce score based on moon brightness (bright moon reduces visibility)
+  // moon penalizes score
   if (moonIllumination > 75) score -= 25;
   else if (moonIllumination > 50) score -= 15;
   else if (moonIllumination > 25) score -= 8;
-
+  
   return Math.round(clamp(score, 0, 100));
 }

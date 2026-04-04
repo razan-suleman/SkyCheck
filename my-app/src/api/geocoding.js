@@ -1,80 +1,51 @@
-// Geocoding and location services
-
-/**
- * Get user's current location using browser geolocation
- */
 export function getCurrentPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("Geolocation is not supported by your browser."));
+      reject(new Error("Geolocation not supported"));
       return;
     }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => resolve(position),
-      (err) => reject(err),
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
-    );
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+    });
   });
 }
 
-/**
- * Convert city name to coordinates using Open-Meteo geocoding API
- */
 export async function geocodeCity(cityName) {
-  const geocodeUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=1&language=en&format=json`;
+  const res = await fetch(url);
   
-  const response = await fetch(geocodeUrl);
+  if (!res.ok) throw new Error("Failed to find city location.");
   
-  if (!response.ok) {
-    throw new Error("Failed to find city location.");
-  }
-  
-  const data = await response.json();
-  
+  const data = await res.json();
   if (!data.results || data.results.length === 0) {
     throw new Error(`City "${cityName}" not found.`);
   }
   
+  const result = data.results[0];
   return {
-    latitude: data.results[0].latitude,
-    longitude: data.results[0].longitude,
-    name: data.results[0].name,
-    country: data.results[0].country,
-    population: data.results[0].population || 0,
+    latitude: result.latitude,
+    longitude: result.longitude,
+    name: result.name,
+    country: result.country,
+    population: result.population || 0,
   };
 }
 
-/**
- * Reverse geocode: convert coordinates to city name
- * Uses OpenStreetMap's Nominatim API for free reverse geocoding
- */
+// Convert coordinates back to city name using OSM Nominatim
 export async function reverseGeocode(lat, lon) {
   try {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10`;
-    const response = await fetch(url);
+    const res = await fetch(url);
+    if (!res.ok) return "Your Location";
     
-    if (!response.ok) {
-      return "Your Location";
-    }
+    const data = await res.json();
+    const addr = data.address;
     
-    const data = await response.json();
-    
-    // Try to extract city/town name from the address
-    const address = data.address;
-    const cityName = address.city || address.town || address.village || address.municipality || address.county;
-    
-    if (cityName) {
-      return cityName;
-    }
-    
-    return "Your Location";
+    // try to find a city name in the response
+    const city = addr.city || addr.town || addr.village || addr.municipality || addr.county;
+    return city || "Your Location";
   } catch (err) {
-    console.error("Reverse geocoding failed:", err);
     return "Your Location";
   }
 }

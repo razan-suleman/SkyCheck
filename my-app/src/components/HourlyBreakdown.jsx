@@ -1,5 +1,3 @@
-// Hourly breakdown of tonight's stargazing conditions
-
 export default function HourlyBreakdown({ hourlyTonight }) {
   if (!hourlyTonight || hourlyTonight.length === 0) return null;
 
@@ -14,7 +12,7 @@ export default function HourlyBreakdown({ hourlyTonight }) {
         borderRadius: "14px",
       }}
     >
-      <h2 style={{ marginTop: 0, fontSize: "1.2rem" }}>🌟 Hourly Tonight Breakdown</h2>
+      <h2 style={{ marginTop: 0, fontSize: "1.2rem" }}>Hourly Tonight Breakdown</h2>
       <p style={{ marginTop: "0.35rem", marginBottom: "1rem", color: "#e0e0e0", fontSize: "0.85rem" }}>
         Hour-by-hour stargazing conditions from now until sunrise.
       </p>
@@ -59,10 +57,11 @@ export default function HourlyBreakdown({ hourlyTonight }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "12px",
+                    fontSize: "10px",
+                    fontWeight: "bold",
                   }}
                 >
-                  ⭐
+                  BEST
                 </div>
               )}
               
@@ -97,14 +96,14 @@ export default function HourlyBreakdown({ hourlyTonight }) {
                     marginBottom: "0.5rem",
                   }}
                 >
-                  🌆 Twilight
+                  Twilight
                 </div>
               )}
               
               <div style={{ fontSize: "0.65rem", color: "#d0d0d0", lineHeight: "1.4" }}>
-                <div>☁️ {hour.cloud}%</div>
-                <div>💧 {hour.humidity}%</div>
-                <div>🌙 {hour.moonIllumination}%</div>
+                <div>Cloud: {hour.cloud}%</div>
+                <div>Humidity: {hour.humidity}%</div>
+                <div>Moon: {hour.moonIllumination}%</div>
               </div>
             </div>
           );
@@ -121,7 +120,7 @@ export default function HourlyBreakdown({ hourlyTonight }) {
           color: "#e0e0e0",
         }}
       >
-        <strong>Legend:</strong> ⭐ = Best hour | Brighter cards = Dark sky period | Dimmed cards = Twilight hours
+        <strong>Legend:</strong> Brighter cards = Dark sky period | Dimmed cards = Twilight hours | "BEST" badge = Highest score
       </div>
     </div>
   );

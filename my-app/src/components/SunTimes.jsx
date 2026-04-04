@@ -1,5 +1,3 @@
-// Sunset, sunrise, and twilight times display
-
 export default function SunTimes({ sunTimes }) {
   if (!sunTimes) return null;
 
@@ -29,21 +27,19 @@ export default function SunTimes({ sunTimes }) {
           gap: "0.65rem",
         }}
       >
-        <TimeCard icon="🌇" label="Sunset" time={sunTimes.sunset} />
-        <TimeCard icon="🌆" label="Civil Twilight" time={sunTimes.civilTwilight} />
+        <TimeCard label="Sunset" time={sunTimes.sunset} />
+        <TimeCard label="Civil Twilight" time={sunTimes.civilTwilight} />
         <TimeCard 
-          icon="⭐" 
           label="Dark Sky Begins" 
           time={sunTimes.astronomicalTwilight} 
           highlighted
         />
         <TimeCard 
-          icon="🌌" 
           label="Dark Sky Ends" 
           time={sunTimes.morningTwilight} 
           highlighted
         />
-        <TimeCard icon="🌄" label="Sunrise" time={sunTimes.sunrise} />
+        <TimeCard label="Sunrise" time={sunTimes.sunrise} />
       </div>
       
       <div
@@ -56,13 +52,13 @@ export default function SunTimes({ sunTimes }) {
           border: "1px solid rgba(52, 211, 153, 0.2)",
         }}
       >
-        <strong>💡 Best Stargazing:</strong> During the <span style={{ color: "#6ee7b7", fontWeight: "600" }}>Dark Sky</span> window when astronomical twilight has passed and stars are most visible.
+        <strong>Best Stargazing:</strong> During the <span style={{ color: "#6ee7b7", fontWeight: "600" }}>Dark Sky</span> window when astronomical twilight has passed and stars are most visible.
       </div>
     </div>
   );
 }
 
-function TimeCard({ icon, label, time, highlighted = false }) {
+function TimeCard({ label, time, highlighted = false }) {
   return (
     <div
       style={{
@@ -94,7 +90,6 @@ function TimeCard({ icon, label, time, highlighted = false }) {
         e.currentTarget.style.boxShadow = "none";
       }}
     >
-      <div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>{icon}</div>
       <div style={{ 
         fontSize: "0.75rem", 
         opacity: highlighted ? 0.9 : 0.7, 
