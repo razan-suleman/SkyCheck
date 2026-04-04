@@ -4,7 +4,7 @@ I opened a website to check if tonight was good for stargazing… and it asked m
 For the sky.
 So instead of paying, I did what any reasonable person would do — I built my own.
 
-## ✨ What it does
+## What it does
 
 SkyCheck is a web app that answers one question:
 
