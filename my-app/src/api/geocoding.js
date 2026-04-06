@@ -19,7 +19,7 @@ export async function geocodeCity(cityName) {
   
   const data = await res.json();
   if (!data.results || data.results.length === 0) {
-    throw new Error(`City "${cityName}" not found.`);
+    throw new Error(`City "${cityName}" not found. Try using the autocomplete suggestions or check the spelling.`);
   }
   
   const result = data.results[0];
@@ -30,6 +30,33 @@ export async function geocodeCity(cityName) {
     country: result.country,
     population: result.population || 0,
   };
+}
+
+// Fetch city suggestions for autocomplete
+export async function getCitySuggestions(cityName) {
+  if (!cityName || cityName.trim().length < 2) {
+    return [];
+  }
+  
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityName)}&count=10&language=en&format=json`;
+  const res = await fetch(url);
+  
+  if (!res.ok) return [];
+  
+  const data = await res.json();
+  if (!data.results || data.results.length === 0) {
+    return [];
+  }
+  
+  return data.results.map(result => ({
+    latitude: result.latitude,
+    longitude: result.longitude,
+    name: result.name,
+    country: result.country,
+    admin1: result.admin1 || '',
+    population: result.population || 0,
+    displayName: `${result.name}${result.admin1 ? ', ' + result.admin1 : ''}, ${result.country}`
+  }));
 }
 
 // Convert coordinates back to city name using OSM Nominatim

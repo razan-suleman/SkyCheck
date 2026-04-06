@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 // API imports
 import { fetchWeatherData, fetchWeeklyWeatherData } from "./api/weatherApi";
-import { getCurrentPosition, geocodeCity, reverseGeocode } from "./api/geocoding";
+import { getCurrentPosition, geocodeCity, reverseGeocode, getCitySuggestions } from "./api/geocoding";
 import { fetchISSPasses } from "./api/issApi";
 
 // Utility imports
@@ -43,10 +43,58 @@ function App() {
   const [lightPollution, setLightPollution] = useState(null);
   const [planets, setPlanets] = useState(null);
   const [issPasses, setIssPasses] = useState(null);
+  
+  // Autocomplete state
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef(null);
+  const suggestionsRef = useRef(null);
+
+  // Fetch city suggestions with debouncing
+  useEffect(() => {
+    const delayTimer = setTimeout(async () => {
+      if (city.trim().length >= 2) {
+        try {
+          const results = await getCitySuggestions(city);
+          setSuggestions(results);
+          setShowSuggestions(true); // Always show, even if empty
+          setSelectedIndex(-1);
+        } catch (err) {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(delayTimer);
+  }, [city]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        inputRef.current && 
+        !inputRef.current.contains(event.target) &&
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(event.target)
+      ) {
+        setShowSuggestions(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle city search submission
-  async function handleCitySearch() {
-    if (!city.trim()) {
+  async function handleCitySearch(selectedCity = null) {
+    const searchQuery = selectedCity || city.trim();
+    
+    if (!searchQuery) {
       setError("Please enter a city name.");
       return;
     }
@@ -60,9 +108,11 @@ function App() {
     setLightPollution(null);
     setPlanets(null);
     setIssPasses(null);
+    setShowSuggestions(false);
 
     try {
-      const location = await geocodeCity(city);
+      // First check if we have suggestions - they should work
+      const location = await geocodeCity(searchQuery);
       const data = await fetchWeatherData(location.latitude, location.longitude);
       const weekData = await fetchWeeklyWeatherData(location.latitude, location.longitude);
 
@@ -211,6 +261,53 @@ function App() {
     }
   }
 
+  // Handle selecting a suggestion
+  function handleSelectSuggestion(suggestion) {
+    setCity(suggestion.displayName);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setSelectedIndex(-1);
+    // Automatically search after selection
+    handleCitySearch(suggestion.name);
+  }
+
+  // Handle keyboard navigation in autocomplete
+  function handleKeyDown(e) {
+    if (!showSuggestions || suggestions.length === 0) {
+      if (e.key === "Enter") {
+        handleCitySearch();
+      }
+      return;
+    }
+
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handleSelectSuggestion(suggestions[selectedIndex]);
+        } else {
+          handleCitySearch();
+        }
+        break;
+      case "Escape":
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        break;
+      default:
+        break;
+    }
+  }
+
   return (
     <div
       style={{
@@ -283,12 +380,13 @@ function App() {
           </p>
         </div>
 
-        <div style={{ marginBottom: "1.25rem" }}>
+        <div style={{ marginBottom: "1.25rem", position: "relative" }}>
           <input
+            ref={inputRef}
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleCitySearch()}
+            onKeyDown={handleKeyDown}
             placeholder="Enter city name (e.g., Tokyo)..."
             style={{
               padding: "0.85rem 1rem",
@@ -307,6 +405,7 @@ function App() {
               e.target.style.borderColor = "rgba(102, 126, 234, 0.6)";
               e.target.style.background = "rgba(255, 255, 255, 0.12)";
               e.target.style.transform = "translateY(-2px)";
+              if (suggestions.length > 0) setShowSuggestions(true);
             }}
             onBlur={(e) => {
               e.target.style.borderColor = "rgba(255, 255, 255, 0.15)";
@@ -314,6 +413,74 @@ function App() {
               e.target.style.transform = "translateY(0)";
             }}
           />
+          
+          {/* Autocomplete dropdown */}
+          {showSuggestions && city.trim().length >= 2 && (
+            <div
+              ref={suggestionsRef}
+              style={{
+                position: "absolute",
+                top: "calc(100% - 0.75rem)",
+                left: 0,
+                right: 0,
+                background: "rgba(30, 30, 50, 0.98)",
+                backdropFilter: "blur(20px)",
+                borderRadius: "12px",
+                border: "1px solid rgba(102, 126, 234, 0.3)",
+                boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
+                maxHeight: "300px",
+                overflowY: "auto",
+                zIndex: 1000,
+                marginBottom: "0.75rem",
+              }}
+            >
+              {suggestions.length === 0 ? (
+                <div style={{
+                  padding: "1rem",
+                  textAlign: "center",
+                  opacity: 0.7,
+                  fontSize: "0.9rem"
+                }}>
+                  No cities found. Try a different spelling or use a larger city nearby.
+                </div>
+              ) : (
+                suggestions.map((suggestion, index) => (
+                  <div
+                    key={`${suggestion.latitude}-${suggestion.longitude}`}
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                    onMouseEnter={() => setSelectedIndex(index)}
+                    style={{
+                      padding: "0.75rem 1rem",
+                      cursor: "pointer",
+                      background: selectedIndex === index 
+                        ? "rgba(102, 126, 234, 0.3)" 
+                        : "transparent",
+                      borderBottom: index < suggestions.length - 1 
+                        ? "1px solid rgba(255, 255, 255, 0.1)" 
+                        : "none",
+                      transition: "background 0.2s ease",
+                    }}
+                  >
+                    <div style={{ 
+                      fontSize: "0.95rem", 
+                      fontWeight: "500",
+                      marginBottom: "0.1rem",
+                    }}>
+                      {suggestion.displayName}
+                    </div>
+                    {suggestion.population > 0 && (
+                      <div style={{ 
+                        fontSize: "0.75rem", 
+                        opacity: 0.6,
+                      }}>
+                        Population: {suggestion.population.toLocaleString()}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
           
           <div style={{ display: "flex", gap: "0.6rem" }}>
             <button
