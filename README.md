@@ -22,7 +22,7 @@ It combines multiple data sources and gives a simple, reliable answer, along wit
 
 ---
 
-## 🧠 Core idea
+## Core idea
 
 Instead of showing raw weather data and making the user interpret it, the app translates everything into a single score:
 
